@@ -221,7 +221,7 @@ class CrudViewCommand extends Command
             } else {
                 $this->formBodyHtml .= '<td>{{ $item->' . $field . ' }}</td>';
             }
-            $this->formBodyHtmlForShowView .= '<td> {{ $%%crudNameSingular%%->' . $field . ' }} </td>';
+            $this->formBodyHtmlForShowView .= '<tr><td>' . $label . '</td><td> {{ $%%crudNameSingular%%->' . $field . ' }} </td></tr>';
 
             $i++;
         }
