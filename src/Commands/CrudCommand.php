@@ -31,10 +31,13 @@ class CrudCommand extends Command
     protected $description = 'Generate Crud including controller, model, views & migrations.';
 
     /** @var string  */
+    protected $name = '';
     protected $routeName = '';
+    protected $routeGroup = '';
 
     /** @var string  */
     protected $controller = '';
+    protected $controllerName = '';
 
     /**
      * Create a new command instance.
@@ -54,15 +57,21 @@ class CrudCommand extends Command
     public function handle()
     {
         $name = $this->argument('name');
-        $modelName = str_singular($name);
+        $this->name = $name;
         $migrationName = str_plural(snake_case($name));
         $tableName = $migrationName;
-        $viewName = snake_case($name, '-');
+        $word = str_replace('_', ' ', $name);
+        $viewName = snake_case($word, '-');
+        $humanName = ucwords(str_singular($word));
+        $modelName = ucwords(camel_case(str_singular($name)));
 
         $routeGroup = $this->option('route-group');
+        $this->routeGroup = $routeGroup;
         $this->routeName = ($routeGroup) ? $routeGroup . '/' . snake_case($name, '-') : snake_case($name, '-');
 
-        $controllerNamespace = ($this->option('namespace')) ? $this->option('namespace') . '\\' : '';
+        $namespace = $this->option('namespace');
+        $controllerNamespace = $namespace ? $namespace . '\\' : '';
+        $this->controllerName = $modelName . 'Controller';
 
         $fields = $this->option('fields');
         $primaryKey = $this->option('pk');
@@ -91,12 +100,13 @@ class CrudCommand extends Command
         $localize = $this->option('localize');
         $locales = $this->option('locales');
 
-        $this->call('crud:controller', ['name' => $controllerNamespace . $name . 'Controller', '--crud-name' => $name, '--model-name' => $modelName, '--view-path' => $viewPath, '--required-fields' => $requiredFields, '--route-group' => $routeGroup]);
+
+        $this->call('crud:controller', ['name' => $controllerNamespace . $this->controllerName, '--crud-name' => $name, '--model-name' => $modelName, '--view-path' => $viewPath, '--required-fields' => $requiredFields, '--route-group' => $routeGroup]);
         $this->call('crud:model', ['name' => $modelName, '--fillable' => $fillable, '--table' => $tableName]);
         $this->call('crud:migration', ['name' => $migrationName, '--schema' => $fields, '--pk' => $primaryKey]);
-        $this->call('crud:view', ['name' => $viewName, '--fields' => $fields, '--view-path' => $viewPath, '--route-group' => $routeGroup, '--localize' => $localize]);
+        $this->call('crud:view', ['name' => $name, '--fields' => $fields, '--view-path' => $viewPath, '--route-group' => $routeGroup, '--localize' => $localize]);
         if($this->option('localize') == 'yes') {
-            $this->call('crud:lang', ['name' => $viewName, '--fields' => $fields, '--locales' => $locales]);
+            $this->call('crud:lang', ['name' => $name, '--fields' => $fields, '--locales' => $locales]);
         }
         // For optimizing the class loader
         $this->callSilent('optimize');
@@ -104,11 +114,11 @@ class CrudCommand extends Command
         // Updating the Http/routes.php file
         $routeFile = app_path('Http/routes.php');
         if (file_exists($routeFile) && (strtolower($this->option('route')) === 'yes')) {
-            $this->controller = ($controllerNamespace != '') ? $controllerNamespace . '\\' . $name . 'Controller' : $name . 'Controller';
+            $this->controller = ($controllerNamespace != '') ? $controllerNamespace . $modelName . 'Controller' : $modelName . 'Controller';
 
             if (\App::VERSION() >= '5.2') {
                 $isAdded = File::append($routeFile,
-                    "\nRoute::group(['middleware' => ['web']], function () {"
+                    "\nRoute::group([".($namespace ? "'namespace' => '{$namespace}', " : '') . ($routeGroup ? "'prefix' => '{$routeGroup}', " : '') . "'middleware' => 'web'], function () {"
                     . "\n\t" . implode("\n\t", $this->addRoutes())
                     . "\n});"
                 );
@@ -125,6 +135,6 @@ class CrudCommand extends Command
     }
 
     protected function addRoutes() {
-        return ["Route::resource('" . $this->routeName . "', '" . $this->controller . "');"];
+        return ["Route::resource('" . ($this->routeGroup ? $this->name : $this->routeName) . "', '" . $this->controllerName . "');"];
     }
 }

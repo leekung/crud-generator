@@ -64,6 +64,7 @@ class CrudViewCommand extends Command
         'timestamp' => 'datetime-local',
         'time' => 'time',
         'boolean' => 'radio',
+        'file' => 'file',
     ];
 
     /**
@@ -100,6 +101,7 @@ class CrudViewCommand extends Command
      * @var string
      */
     protected $crudNameCap = '';
+    protected $crudNameCapital = '';
 
     /**
      * Crud Name in singular form.
@@ -168,6 +170,7 @@ class CrudViewCommand extends Command
     {
         $this->crudName = $this->argument('name');
         $this->crudNameCap = ucwords($this->crudName);
+        $this->crudNameCapital = ucwords(str_replace('_', ' ', $this->crudNameCap));
         $this->crudNameSingular = str_singular($this->crudName);
         $this->modelName = ucwords($this->crudNameSingular);
         $this->routeGroupWithSlash = ($this->option('route-group')) ? $this->option('route-group') . '/' : $this->option('route-group');
@@ -218,17 +221,20 @@ class CrudViewCommand extends Command
             if($this->option('localize') == 'yes') {
                 $label = 'trans(\'' . $this->crudName . '.' . $field . '\')';
             }
-            $this->formHeadingHtml .= '<th>' . $label . '</th>';
+            $this->formHeadingHtml .= '<th>{{ ' . $label . ' }}</th>'."\n\t\t\t\t\t\t";
 
             if ($i == 0) {
-                $this->formBodyHtml .= '<td><a href="{{ url(\'%%routeGroup%%%%crudName%%\', $item->id) }}">{{ $item->' . $field . ' }}</a></td>';
+                $this->formBodyHtml .= '<td><a href="{{ url(\'%%routeGroupWithDot%%%%crudName%%\', $item->id) }}">{{ $item->' . $field . ' }}</a></td>';
             } else {
                 $this->formBodyHtml .= '<td>{{ $item->' . $field . ' }}</td>';
             }
-            $this->formBodyHtmlForShowView .= '<tr><td>' . $label . '</td><td> {{ $%%crudNameSingular%%->' . $field . ' }} </td></tr>';
+            $this->formBodyHtmlForShowView .= '<tr><td class="col-sm-2">{{ ' . $label . ' }}</td><td class="col-sm-10"> {{ $%%crudNameSingular%%->' . $field . ' }} </td></tr>'."\n\t\t\t\t\t\t";
 
             $i++;
         }
+        $this->formHeadingHtml = trim($this->formHeadingHtml);
+        $this->formBodyHtmlForShowView = trim($this->formBodyHtmlForShowView);
+        $this->formFieldsHtml = trim($this->formFieldsHtml);
 
         // For index.blade.php file
         $indexFile = $this->viewDirectoryPath . 'index.blade.stub';
@@ -236,7 +242,7 @@ class CrudViewCommand extends Command
         if (!File::copy($indexFile, $newIndexFile)) {
             echo "failed to copy $indexFile...\n";
         } else {
-            $this->templateIndexVars($newIndexFile);
+            $this->templateVars($newIndexFile);
         }
 
         // For create.blade.php file
@@ -245,7 +251,7 @@ class CrudViewCommand extends Command
         if (!File::copy($createFile, $newCreateFile)) {
             echo "failed to copy $createFile...\n";
         } else {
-            $this->templateCreateVars($newCreateFile);
+            $this->templateVars($newCreateFile);
         }
 
         // For edit.blade.php file
@@ -254,7 +260,7 @@ class CrudViewCommand extends Command
         if (!File::copy($editFile, $newEditFile)) {
             echo "failed to copy $editFile...\n";
         } else {
-            $this->templateEditVars($newEditFile);
+            $this->templateVars($newEditFile);
         }
 
         // For show.blade.php file
@@ -263,7 +269,7 @@ class CrudViewCommand extends Command
         if (!File::copy($showFile, $newShowFile)) {
             echo "failed to copy $showFile...\n";
         } else {
-            $this->templateShowVars($newShowFile);
+            $this->templateVars($newShowFile);
         }
 
         // For layouts/master.blade.php file
@@ -285,76 +291,29 @@ class CrudViewCommand extends Command
     }
 
     /**
-     * Update values between %% with real values in index view.
+     * Update values between %% with real values in view.
      *
-     * @param  string $newIndexFile
-     *
-     * @return void
-     */
-    public function templateIndexVars($newIndexFile)
-    {
-        File::put($newIndexFile, str_replace('%%formFields%%', json_encode($this->formFields, JSON_UNESCAPED_UNICODE), File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%formHeadingHtml%%', $this->formHeadingHtml, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%formBodyHtml%%', $this->formBodyHtml, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%crudName%%', $this->crudName, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%crudNameCap%%', $this->crudNameCap, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%modelName%%', $this->modelName, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newIndexFile)));
-        File::put($newIndexFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newIndexFile)));
-    }
-
-    /**
-     * Update values between %% with real values in create view.
-     *
-     * @param  string $newCreateFile
+     * @param  string $newFile
      *
      * @return void
      */
-    public function templateCreateVars($newCreateFile)
+    public function templateVars($newFile)
     {
-        File::put($newCreateFile, str_replace('%%crudName%%', $this->crudName, File::get($newCreateFile)));
-        File::put($newCreateFile, str_replace('%%modelName%%', $this->modelName, File::get($newCreateFile)));
-        File::put($newCreateFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newCreateFile)));
-        File::put($newCreateFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newCreateFile)));
-        File::put($newCreateFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newCreateFile)));
-        File::put($newCreateFile, str_replace('%%formFieldsHtml%%', $this->formFieldsHtml, File::get($newCreateFile)));
-    }
-
-    /**
-     * Update values between %% with real values in edit view.
-     *
-     * @param  string $newEditFile
-     *
-     * @return void
-     */
-    public function templateEditVars($newEditFile)
-    {
-        File::put($newEditFile, str_replace('%%crudName%%', $this->crudName, File::get($newEditFile)));
-        File::put($newEditFile, str_replace('%%crudNameSingular%%', $this->crudNameSingular, File::get($newEditFile)));
-        File::put($newEditFile, str_replace('%%modelName%%', $this->modelName, File::get($newEditFile)));
-        File::put($newEditFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newEditFile)));
-        File::put($newEditFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newEditFile)));
-        File::put($newEditFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newEditFile)));
-        File::put($newEditFile, str_replace('%%formFieldsHtml%%', $this->formFieldsHtml, File::get($newEditFile)));
-    }
-
-    /**
-     * Update values between %% with real values in show view.
-     *
-     * @param  string $newShowFile
-     *
-     * @return void
-     */
-    public function templateShowVars($newShowFile)
-    {
-        File::put($newShowFile, str_replace('%%formHeadingHtml%%', $this->formHeadingHtml, File::get($newShowFile)));
-        File::put($newShowFile, str_replace('%%formBodyHtml%%', $this->formBodyHtmlForShowView, File::get($newShowFile)));
-        File::put($newShowFile, str_replace('%%crudNameSingular%%', $this->crudNameSingular, File::get($newShowFile)));
-        File::put($newShowFile, str_replace('%%modelName%%', $this->modelName, File::get($newShowFile)));
-        File::put($newShowFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newShowFile)));
-        File::put($newShowFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newShowFile)));
-        File::put($newShowFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newShowFile)));
+        $content = File::get($newFile);
+        $content = str_replace('%%formFields%%', json_encode($this->formFields, JSON_UNESCAPED_UNICODE), $content);
+        $content = str_replace('%%formHeadingHtml%%', $this->formHeadingHtml, $content);
+        $content = str_replace('%%formBodyHtml%%', $this->formBodyHtml, $content);
+        $content = str_replace('%%formBodyHtmlForShowView%%', $this->formBodyHtmlForShowView, $content);
+        $content = str_replace('%%crudName%%', $this->crudName, $content);
+        $content = str_replace('%%crudNameCap%%', $this->crudNameCap, $content);
+        $content = str_replace('%%crudNameCapital%%', $this->crudNameCapital, $content);
+        $content = str_replace('%%crudNameSingular%%', $this->crudNameSingular, $content);
+        $content = str_replace('%%modelName%%', $this->modelName, $content);
+        $content = str_replace('%%routeGroup%%', $this->routeGroup, $content);
+        $content = str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, $content);
+        $content = str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, $content);
+        $content = str_replace('%%formFieldsHtml%%', $this->formFieldsHtml, $content);
+        File::put($newFile, $content);
     }
 
     /**
@@ -370,8 +329,8 @@ class CrudViewCommand extends Command
         $formGroup =
             <<<EOD
             <div class="form-group {{ \$errors->has('%1\$s') ? 'has-error' : ''}}">
-                {!! Form::label('%1\$s', %2\$s, ['class' => 'col-sm-3 control-label']) !!}
-                <div class="col-sm-6">
+                {!! Form::label('%1\$s', %2\$s, ['class' => 'col-sm-2 control-label']) !!}
+                <div class="col-sm-10">
                     %3\$s
                     {!! \$errors->first('%1\$s', '<p class="help-block">:message</p>') !!}
                 </div>
@@ -405,6 +364,9 @@ EOD;
                 break;
             case 'radio':
                 return $this->createRadioField($item);
+                break;
+            case 'file':
+                return $this->createFileField($item);
                 break;
             default: // text
                 return $this->createFormField($item);
@@ -459,6 +421,23 @@ EOD;
         return $this->wrapField(
             $item,
             "{!! Form::input('" . $this->typeLookup[$item['type']] . "', '" . $item['name'] . "', null, ['class' => 'form-control'$required]) !!}"
+        );
+    }
+
+    /**
+     * Create a file input field using the form helper.
+     *
+     * @param  string $item
+     *
+     * @return string
+     */
+    protected function createFileField($item)
+    {
+        $required = ($item['required'] === true) ? ", 'required' => 'required'" : "";
+
+        return $this->wrapField(
+            $item,
+            "{!! Form::file('" . $item['name'] . "', null, [$required]) !!}"
         );
     }
 

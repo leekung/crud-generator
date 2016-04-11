@@ -68,6 +68,8 @@ class CrudLangCommand extends Command
     {
         $this->crudName = $this->argument('name');
         $this->locales = explode(',',$this->option('locales'));
+        $this->crudNameCap = ucwords($this->crudName);
+        $this->crudNameCapital = ucwords(str_replace('_', ' ', $this->crudNameCap));
 
         $fields = $this->option('fields');
         $fieldsArray = explode(',', $fields);
@@ -109,7 +111,9 @@ class CrudLangCommand extends Command
 
     private function templateVars($newLangFile)
     {
-        $messages = [];
+        $messages = [
+            "'table_name' => '{$this->crudNameCapital}'"
+        ];
         foreach($this->formFields as $field) {
             $index = $field['name'];
             $text = ucwords(strtolower(str_replace('_', ' ', $index)));

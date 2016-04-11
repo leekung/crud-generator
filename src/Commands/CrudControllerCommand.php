@@ -69,10 +69,12 @@ class CrudControllerCommand extends GeneratorCommand
         $stub = $this->files->get($this->getStub());
 
         $viewPath = $this->option('view-path') ? $this->option('view-path') . '.' : '';
+        $modelName = $this->option('model-name');
         $crudName = strtolower($this->option('crud-name'));
         $crudNameSingular = str_singular($crudName);
-        $modelName = $this->option('model-name');
         $routeGroup = $this->option('route-group');
+        $crudNameHuman = ucwords(str_replace('_', ' ', $crudName));
+        $crudNameCap = str_replace(' ', '', $crudNameHuman);
 
         $validationRules = '';
         if ($this->option('required-fields') != '') {
@@ -81,7 +83,7 @@ class CrudControllerCommand extends GeneratorCommand
 
         return $this->replaceNamespace($stub, $name)
             ->replaceViewPath($stub, $viewPath)
-            ->replaceCrudName($stub, $crudName)
+            ->replaceCrudName($stub, $crudName, $crudNameHuman, $crudNameCap)
             ->replaceCrudNameSingular($stub, $crudNameSingular)
             ->replaceModelName($stub, $modelName)
             ->replaceRouteGroup($stub, $routeGroup)
@@ -114,10 +116,16 @@ class CrudControllerCommand extends GeneratorCommand
      *
      * @return $this
      */
-    protected function replaceCrudName(&$stub, $crudName)
+    protected function replaceCrudName(&$stub, $crudName, $crudNameHuman, $crudNameCap)
     {
         $stub = str_replace(
             '{{crudName}}', $crudName, $stub
+        );
+        $stub = str_replace(
+            '{{crudNameHuman}}', str_replace('_', ' ', $crudNameHuman), $stub
+        );
+        $stub = str_replace(
+            '{{crudNameCap}}', str_replace('_', ' ', $crudNameCap), $stub
         );
 
         return $this;
@@ -171,7 +179,7 @@ class CrudControllerCommand extends GeneratorCommand
             '{{routeGroup}}', $routeGroup, $stub
         );
         $stub = str_replace(
-            '{{routeGroupWithDash}}', $routeGroup . '/', $stub
+            '{{routeGroupWithSlash}}', $routeGroup . '/', $stub
         );
         $stub = str_replace(
             '{{routeGroupWithDot}}', $routeGroup . '.', $stub
