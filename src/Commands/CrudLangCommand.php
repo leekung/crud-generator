@@ -116,6 +116,6 @@ class CrudLangCommand extends Command
             $messages[] = "'$index' => '$text'";
         }
 
-        File::put($newLangFile, str_replace('%%messages%%', implode(",\n",$messages), File::get($newLangFile)));
+        File::put($newLangFile, str_replace('%%messages%%', implode(",\n\t",$messages), File::get($newLangFile)));
     }
 }

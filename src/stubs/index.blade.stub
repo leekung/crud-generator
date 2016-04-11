@@ -2,7 +2,7 @@
 
 @section('content')
 
-    <h1>%%crudNameCap%% <a href="{{ url('%%routeGroup%%%%crudName%%/create') }}" class="btn btn-primary pull-right btn-sm">Add New %%modelName%%</a></h1>
+    <h1>%%crudNameCap%% <a href="{{ url('%%routeGroupWithSlash%%%%crudName%%/create') }}" class="btn btn-primary pull-right btn-sm">Add New %%modelName%%</a></h1>
     <div class="table">
         <table class="table table-bordered table-striped table-hover">
             <thead>
@@ -18,10 +18,10 @@
                     <td>{{ $x }}</td>
                     %%formBodyHtml%%
                     <td>
-                        <a href="{{ url('%%routeGroup%%%%crudName%%/' . $item->id . '/edit') }}" class="btn btn-primary btn-xs">Update</a> 
+                        <a href="{{ url('%%routeGroupWithSlash%%%%crudName%%/' . $item->id . '/edit') }}" class="btn btn-primary btn-xs">Update</a>
                         {!! Form::open([
                             'method'=>'DELETE',
-                            'url' => ['%%routeGroup%%%%crudName%%', $item->id],
+                            'url' => ['%%routeGroupWithSlash%%%%crudName%%', $item->id],
                             'style' => 'display:inline'
                         ]) !!}
                             {!! Form::submit('Delete', ['class' => 'btn btn-danger btn-xs']) !!}

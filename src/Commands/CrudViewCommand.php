@@ -121,6 +121,8 @@ class CrudViewCommand extends Command
      * @var string
      */
     protected $routeGroup = '';
+    protected $routeGroupWithSlash = '';
+    protected $routeGroupWithDot = '';
 
     /**
      * Html of the form heading.
@@ -168,7 +170,9 @@ class CrudViewCommand extends Command
         $this->crudNameCap = ucwords($this->crudName);
         $this->crudNameSingular = str_singular($this->crudName);
         $this->modelName = ucwords($this->crudNameSingular);
-        $this->routeGroup = ($this->option('route-group')) ? $this->option('route-group') . '/' : $this->option('route-group');
+        $this->routeGroupWithSlash = ($this->option('route-group')) ? $this->option('route-group') . '/' : $this->option('route-group');
+        $this->routeGroupWithDot = ($this->option('route-group')) ? $this->option('route-group') . '.' : $this->option('route-group');
+        $this->routeGroup = $this->option('route-group');
 
         $viewDirectory = config('view.paths')[0] . '/';
         if ($this->option('view-path')) {
@@ -289,12 +293,15 @@ class CrudViewCommand extends Command
      */
     public function templateIndexVars($newIndexFile)
     {
+        File::put($newIndexFile, str_replace('%%formFields%%', json_encode($this->formFields, JSON_UNESCAPED_UNICODE), File::get($newIndexFile)));
         File::put($newIndexFile, str_replace('%%formHeadingHtml%%', $this->formHeadingHtml, File::get($newIndexFile)));
         File::put($newIndexFile, str_replace('%%formBodyHtml%%', $this->formBodyHtml, File::get($newIndexFile)));
         File::put($newIndexFile, str_replace('%%crudName%%', $this->crudName, File::get($newIndexFile)));
         File::put($newIndexFile, str_replace('%%crudNameCap%%', $this->crudNameCap, File::get($newIndexFile)));
         File::put($newIndexFile, str_replace('%%modelName%%', $this->modelName, File::get($newIndexFile)));
         File::put($newIndexFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newIndexFile)));
+        File::put($newIndexFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newIndexFile)));
+        File::put($newIndexFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newIndexFile)));
     }
 
     /**
@@ -309,6 +316,8 @@ class CrudViewCommand extends Command
         File::put($newCreateFile, str_replace('%%crudName%%', $this->crudName, File::get($newCreateFile)));
         File::put($newCreateFile, str_replace('%%modelName%%', $this->modelName, File::get($newCreateFile)));
         File::put($newCreateFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newCreateFile)));
+        File::put($newCreateFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newCreateFile)));
+        File::put($newCreateFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newCreateFile)));
         File::put($newCreateFile, str_replace('%%formFieldsHtml%%', $this->formFieldsHtml, File::get($newCreateFile)));
     }
 
@@ -325,6 +334,8 @@ class CrudViewCommand extends Command
         File::put($newEditFile, str_replace('%%crudNameSingular%%', $this->crudNameSingular, File::get($newEditFile)));
         File::put($newEditFile, str_replace('%%modelName%%', $this->modelName, File::get($newEditFile)));
         File::put($newEditFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newEditFile)));
+        File::put($newEditFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newEditFile)));
+        File::put($newEditFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newEditFile)));
         File::put($newEditFile, str_replace('%%formFieldsHtml%%', $this->formFieldsHtml, File::get($newEditFile)));
     }
 
@@ -341,6 +352,9 @@ class CrudViewCommand extends Command
         File::put($newShowFile, str_replace('%%formBodyHtml%%', $this->formBodyHtmlForShowView, File::get($newShowFile)));
         File::put($newShowFile, str_replace('%%crudNameSingular%%', $this->crudNameSingular, File::get($newShowFile)));
         File::put($newShowFile, str_replace('%%modelName%%', $this->modelName, File::get($newShowFile)));
+        File::put($newShowFile, str_replace('%%routeGroup%%', $this->routeGroup, File::get($newShowFile)));
+        File::put($newShowFile, str_replace('%%routeGroupWithSlash%%', $this->routeGroupWithSlash, File::get($newShowFile)));
+        File::put($newShowFile, str_replace('%%routeGroupWithDot%%', $this->routeGroupWithDot, File::get($newShowFile)));
     }
 
     /**

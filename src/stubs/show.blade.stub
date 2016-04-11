@@ -10,5 +10,8 @@
             </tbody>    
         </table>
     </div>
+    <script>
+        var formFields = %%formFields%%;
+    </script>
 
 @endsection
