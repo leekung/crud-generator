@@ -23,7 +23,7 @@ class DummyClass extends Controller
         if(is_array($columns) && class_exists('Datatables')) {
             $product_category = ProductCategory::all(['id', 'title', 'description']);
 
-            return Datatables::of($product_category)->make();
+            return \Yajra\Datatables\Datatables::of($product_category)->make();
         }
 
         ${{crudName}} = {{modelName}}::paginate(15);
